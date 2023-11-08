@@ -1,39 +1,81 @@
-const express=require('express');
-const path=require('path');
-const bodyParser=require('body-parser');
+const path = require('path');
+const cors = require("cors");
+const fs = require('fs');
+const express = require('express');
+const bodyParser = require('body-parser');
+const sequelize = require('./util/database');
+const helmet=require('helmet');
+const morgan=require('morgan');
 
-const app=express();
+const User = require('./models/user');
+const Expense = require('./models/expense');
+const Orders = require('./models/orders');
+const Forgotpasswords=require('./models/forgotpassword');
+const Downloads=require('./models/downloads');
 
-const adminRoutes=require('./routes/admin');
-const shopRoutes=require('./routes/shop'); 
-const contactRoutes=require('./routes/contactus');
-const sucessRoutes=require('./routes/sucess');
+const userRoutes = require('./routes/user');
+const expenseRoutes = require('./routes/expense');
+const purchaseRoutes = require('./routes/purchase');
+const premiumRoutes = require('./routes/premium');
+const passwordRoutes=require('./routes/password');
 
-app.use(bodyParser.urlencoded({extended:false}));
 
-app.use(express.static(path.join(__dirname,'public')));
+const app = express();
+//const accessLogStream=fs.createWriteStream(path.join(__dirname,'access.log'),{flags: 'a'});
 
-app.use('/admin',adminRoutes);
-app.use('/',shopRoutes);
-app.use('/contactus',contactRoutes);
-app.use('/sucess',sucessRoutes);
+//app.use(helmet());
+//app.use(morgan('combined',{stream: accessLogStream}));
+app.use(express.json())
+app.use(cors());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static('public'));
+//app.use(express.static(path.join(__dirname, 'public')));
 
-app.use((req,res,next)=>{
-    //res.status(404).send('<h1>Page not found</h1>');
-    res.status(404).sendFile(path.join(__dirname,'views','404.html'));
+
+app.get('/user', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'index.html'));
 })
 
-app.listen(3000);
+app.get('/expense', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'main.html'));
+})
+app.get('/purchase', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'main.html'));
+})
 
+app.get('/premium', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'main.html'));
+})
+app.get('/password', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'index.html'));
+})
 
+app.use('/user', userRoutes);
+app.use('/expense', expenseRoutes);
+app.use('/purchase', purchaseRoutes);
+app.use('/premium',premiumRoutes);
+app.use('/password',passwordRoutes);
 
+User.hasMany(Expense);
+Expense.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 
+User.hasMany(Orders);
+Orders.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 
-/*const http = require('http');
+User.hasMany(Forgotpasswords);
+Forgotpasswords.belongsTo(User,{constraints:true,onDelete:'CASCADE'});
 
-const routes=require('./routes');
-console.log(routes.someText);
+User.hasMany(Downloads);
+Downloads.belongsTo(User,{constraints:true,onDelete:'CASCADE'});
 
-const server = http.createServer(routes.handler);
-const server = http.createServer();
-server.listen(3000);*/
+async function initiate() {
+  try {
+    await sequelize.sync();
+    app.listen(3000, () => {
+      console.log("Server is running at 3000");
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+initiate();
