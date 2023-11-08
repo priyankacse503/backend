@@ -2,12 +2,17 @@
     "name": "expensetracker",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "app.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "nodemon app.js",
+        "start-server": "node app.js"
+      },
+      "devDependencies": {
+        "nodemon": "^1.18.3"
     },
     "keywords": [],
-    "author": "",
+    "author": "priyanka",
     "license": "ISC",
     "dependencies": {
         "aws-sdk": "^2.1488.0",
